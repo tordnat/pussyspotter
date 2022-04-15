@@ -2,20 +2,19 @@
 ## and archiving both the prediciton and origional
 ## Both archived and predicted will be time-stamped to avoid
 ## name conflicts
-import sys
 
-# Log every detection
+## Logging
 import logging
+verbose_logger = True
+
 from datetime import datetime
 import os
 import subprocess
 
+## Environment variables, there can only be one boilerplate
 output_buffer_file = os.environ["YOLO_STOUT_BUFFER"]
 formatted_buffer_file = os.environ["YOLO_FORMATTED_STOUT_BUFFER"]
 
-def timestamp_filename(filename : str):
-    filename = str(datetime.now()) + filename
-    return filename
 
 def format_buffer_output(): #I fucking hate this
     input_file = open(output_buffer_file)
@@ -27,15 +26,11 @@ def format_buffer_output(): #I fucking hate this
     foo.pop(0)
     foo = ' '.join(foo)
     output_file.write(str(foo))
-    input_file.pop(0)
+    #input_file.pop(0)
     for i in range(1,len(input_file)):
         output_file.write('\n' + input_file[i])
 
-# TO-DO: ffmpeg unsupported formats to jpg
-#def ffmpeg(file : str):
-
-
-#### File formatting
+#### File formatting and logging
 def file_format_filter(file : str):
     return file.endswith(".jpg")
 
@@ -46,6 +41,25 @@ def is_valid_file(file : str):
     else:
         print("Invalid file format")
         return False
+
+## Loggers
+def print_predictions():
+    file = open(formatted_buffer_file, 'r')
+    for i in file:
+        print(i)
+
+### Searching for cats in detections
+def cat_log_search():
+    file = open(formatted_buffer_file, 'r')
+    file = file.read()
+    cat = file.find("cat")
+    if(cat != -1):
+        print("Pussy detected!")
+        if(verbose_logger): print_predictions()
+        return True
+    return False
+
+## TO-DO: implement threshold for some reason
 def prediction(file : str, threshold : float):
     if (is_valid_file(file)):
         subprocess.run(["scripts/yolo_predict.sh", file])
@@ -53,17 +67,6 @@ def prediction(file : str, threshold : float):
         return True
     else:
         return False
-
-### Searching for cats in detections
-def cat_log_search():
-    file = open(formatted_buffer_file, 'r')
-    file = file.read()
-    cat = file.find("cat")
-    if(cat):
-        print("Cat detected in logs")
-        return True
-    return False
-
 
 def cat_detector(file : str, threshold = 1.0): #Dependent on the current buffer being the latest
     try:
@@ -73,5 +76,3 @@ def cat_detector(file : str, threshold = 1.0): #Dependent on the current buffer 
         print("Ouuups something went wrong")
         return 1
 
-
-cat_detector("pussydata/test1.jpg")
