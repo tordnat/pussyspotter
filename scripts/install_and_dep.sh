@@ -6,7 +6,9 @@ else
   exit
 fi
 virtualenv -q pussy_env
-pussy_env/bin/pip install -r ${PWD}/../requirements.txt
-source ${PWD}/../config/envars.sh
+pussy_env/bin/pip install -r ${PWD}/requirements.txt
+touch ${PWD}/pussydata/formatted_buffer.txt
+touch ${PWD}/pussydata/output_buffer.txt
+source ${PWD}/config/envars.sh
 export SLACK_SIGNING_SECRET=$1
-python ${PWD}/../main.py
+python ${PWD}/pussyspotter.py

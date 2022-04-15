@@ -1,2 +1,6 @@
 darknet/*
 pussyspotter_env/
+__pycache__
+.vscode
+/pussydata/formatted_buffer.txt
+/pussydata/output_buffer.txt
