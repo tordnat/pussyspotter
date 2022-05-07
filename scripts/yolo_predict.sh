@@ -7,4 +7,4 @@ else
 fi
 PATH=${PWD}
 cd  $PATH/darknet
-$DARKNET_PATH/darknet detect $YOLO_CONFIG $YOLO_WEIGHTS $PATH/$1 > $YOLO_STOUT_BUFFER
+$DARKNET_PATH/darknet detect $YOLO_CONFIG $YOLO_WEIGHTS $PATH/$1

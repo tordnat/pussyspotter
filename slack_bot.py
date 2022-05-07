@@ -32,7 +32,10 @@ def handle_message(event_data):
         slack_client.chat_postMessage(channel=channel, text=message)
         slack_client.chat_postMessage(channel=channel, text=pussy)
 
-@slack_events_adapter.
+@slack_events_adapter.on("mention")
+def handle_mention(event_data):
+    message = event_data["event"]
+    message.get("")
 
 # Example reaction emoji echo
 @slack_events_adapter.on("reaction_added")
