@@ -1,0 +1,10 @@
+PUSSY_ARCHIVE_PATH=${PWD}'/pussydata/pussy_archive'
+PUSSY_PREDICTION_PATH=${PWD}'/pussydata/pussy_predictions'
+
+DARKNET_PATH=${PWD}'/darknet'
+YOLO_PREDICTION_IMAGE=${PWD}'/darknet/predictions.jpg'
+YOLO_CONFIG=${PWD}'/darknet/cfg/yolov3.cfg'
+YOLO_WEIGHTS=${PWD}'/darknet/yolov3.weights'
+YOLO_DATA=${PWD}'/darknet/cfg/coco.data'
+YOLO_STOUT_BUFFER=${PWD}'/darknet/log.txt'
+YOLO_FORMATTED_STOUT_BUFFER=${PWD}'/pussydata/formatted_buffer.txt'

@@ -9,14 +9,17 @@ verbose_logger = True
 
 from datetime import datetime
 import os
+from os.path import dirname, abspath
 import subprocess
 
 ## Environment variables, there can only be one boilerplate
-output_buffer_file = os.environ["YOLO_STOUT_BUFFER"]
-formatted_buffer_file = os.environ["YOLO_FORMATTED_STOUT_BUFFER"]
+output_buffer_file = os.getenv("YOLO_STOUT_BUFFER")
+formatted_buffer_file = os.getenv("YOLO_FORMATTED_STOUT_BUFFER")
 
-
+## FIX: Something funky here!!!! Should load in envfiles correctly
 def format_buffer_output(): #I fucking hate this
+    output_buffer_file = os.getenv("YOLO_STOUT_BUFFER")
+    formatted_buffer_file = os.getenv("YOLO_FORMATTED_STOUT_BUFFER")
     input_file = open(output_buffer_file)
     output_file = open(formatted_buffer_file, 'w')
     output_file.truncate(0)
@@ -32,7 +35,7 @@ def format_buffer_output(): #I fucking hate this
 
 #### File formatting and logging
 def file_format_filter(file : str):
-    return file.endswith(".jpg")
+    return file.endswith(".jpg") or file.endswith(".png")
 
 def is_valid_file(file : str):
     foo = file_format_filter(file)
@@ -68,9 +71,13 @@ def prediction(file : str, threshold : float):
     else:
         return False
 
-def cat_detector(file : str, threshold = 1.0): #Dependent on the current buffer being the latest
+def pussy_detector(file : str, threshold = 1.0): #Dependent on the current buffer being the latest
     try:
+        env_path = dirname(abspath(".")+"/config"+"/env.sh")
+        load_dotenv(env_path)
+        print(f"Loaded filepath: {file}")
         prediction(file, threshold)
+        print("Prediction done!")
         return cat_log_search()
     except:
         print("Ouuups something went wrong")
