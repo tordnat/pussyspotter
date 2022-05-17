@@ -5,13 +5,15 @@
 
 ## Logging
 import logging
+
+import dotenv
 verbose_logger = True
 
 from datetime import datetime
 import os
 from os.path import dirname, abspath
 import subprocess
-
+import dotenv
 ## Environment variables, there can only be one boilerplate
 output_buffer_file = os.getenv("YOLO_STOUT_BUFFER")
 formatted_buffer_file = os.getenv("YOLO_FORMATTED_STOUT_BUFFER")

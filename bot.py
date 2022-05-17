@@ -11,15 +11,15 @@ from flask import Flask
 from pathlib import Path
 from dotenv import load_dotenv
 from predict import pussy_detector
-
+import time
 
 ## Load environment variables
 env_path = dirname(abspath(".")+"/config"+"/env.sh")
 load_dotenv(env_path)
 
 #temp boilerplate
-slack_signing_secret = "2be2e32989fa5f57c46d7971f974e2df" #os.getenv('SLACK_SIGNING_SECRET')
-slack_app_token = 'xoxb-235646072290-3363750293190-ci8s7zFX9W9EJYoDy9SXcyhL' #os.getenv('SLACK_TOKEN')
+slack_signing_secret = "redacted" #os.getenv('SLACK_SIGNING_SECRET')
+slack_app_token = 'redacted' #os.getenv('SLACK_TOKEN')
 pussy_archive_filepath = "pussydata/pussy_archive/"
 
 app = Flask(__name__)
@@ -37,7 +37,7 @@ def slack_print_thread(text, ts):
     web_client.chat_postMessage(channel='#pussy_testing', text=text, thread_ts=ts)
 
 @slack_event_adapter.on('message')
-def mention(POST):
+def message(POST):
     global bot_id
     event = POST.get('event', {})
     user_id = event.get('user')
@@ -49,7 +49,7 @@ def mention(POST):
         bot_id = user_id
         print(f"Bot ID :{str(bot_id)}")
     ## Filter
-    if subtype != "bot_message":  
+    if subtype != "bot_message" or user_id==bot_id:  
         filepath = get_slack_images(event, message_thread)
         if filepath != -1:
             resp = pussy_detector(filepath)
