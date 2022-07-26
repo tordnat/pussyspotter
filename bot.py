@@ -1,76 +1,52 @@
-from lib2to3.pgen2 import token
+import logging
 import os
 from os.path import dirname, abspath
-import shutil
-import re
+from slack_bolt import App
+from slack_bolt.adapter.socket_mode import SocketModeHandler
 import requests
-from urllib import response
-from slackeventsapi import SlackEventAdapter
-from slack_sdk.web import WebClient
-from flask import Flask
-from pathlib import Path
-from dotenv import load_dotenv
+import re
 from predict import pussy_detector
-import time
+from dotenv import load_dotenv
 
-## Load environment variables
-env_path = dirname(abspath(".")+"/config"+"/env.sh")
-load_dotenv(env_path)
+## Loading .env
+load_dotenv()
 
-#temp boilerplate
-slack_signing_secret = "redacted" #os.getenv('SLACK_SIGNING_SECRET')
-slack_app_token = 'redacted' #os.getenv('SLACK_TOKEN')
-pussy_archive_filepath = "pussydata/pussy_archive/"
-
-app = Flask(__name__)
-slack_event_adapter = SlackEventAdapter(slack_signing_secret,'/slack/events',app)
-web_client = WebClient(token=slack_app_token)
-
-bot_id = None
-startup_message="Hello my pussylovers!"
+#Shitty globals
 accepted_filetypes = ("jpg", "png", "JPG", "PNG")
+slack_bot_token = os.getenv("SLACK_BOT_TOKEN")
+pussy_archive_filepath = os.getenv("PUSSY_ARCHIVE_PATH")
 
-def slack_print_channel(text):
-    web_client.chat_postMessage(channel="#pussy_testing", text=text)
+app = App()
 
-def slack_print_thread(text, ts):
-    web_client.chat_postMessage(channel='#pussy_testing', text=text, thread_ts=ts)
+@app.event("app_mention")
+def event_test(body, say, logger):
+    logger.info(body)
+    event = body["event"]
+    thread_ts = event.get("thread_ts", None) or event["ts"]
+    file=get_slack_images(body=event, say=say, thread_ts=thread_ts)
+    if file: #If file, run detector and upload result to thread
+        result = pussy_detector(file)
+        say(f'{result}', thread_ts=thread_ts)
+        upload_result(thread_ts=thread_ts, channel=event.get("channel"))
 
-@slack_event_adapter.on('message')
-def message(POST):
-    global bot_id
-    event = POST.get('event', {})
-    user_id = event.get('user')
-    message_text = event.get('text')
-    message_thread = event.get('ts')
-    subtype = event.get("subtype")
-    print(f"Thread: {message_thread}")
-    if bot_id is None and message_text == startup_message: #Startup
-        bot_id = user_id
-        print(f"Bot ID :{str(bot_id)}")
-    ## Filter
-    if subtype != "bot_message" or user_id==bot_id:  
-        filepath = get_slack_images(event, message_thread)
-        if filepath != -1:
-            resp = pussy_detector(filepath)
-            slack_print_thread(text=resp, ts=message_thread)
-        
-
-def get_slack_images(POST, ts=None):
-    files = POST.get('files')
+def get_slack_images(body, say, thread_ts):
+    files = body.get('files')
     if files is None: #Filter for files
-        return -1
+        return None
     else:
         for file_obj in files:
             if file_obj.get('filetype') in accepted_filetypes: #Filtering for images             
-                slack_print_thread(f"Archiving file: {file_obj.get('name')}", ts=ts)
+                say(f"Archiving file: {file_obj.get('name')}", thread_ts=thread_ts)
                 filepath = get_file_from_url(file_obj.get('url_private_download'))
-                slack_print_thread(text=f"File saved as {filepath}", ts=ts)
+                say(f"File saved as {filepath}", thread_ts=thread_ts)
                 return filepath
-
+        return say(f"Error: Unsupported file format", thread_ts=thread_ts)
+                
+def upload_result(thread_ts, channel):
+    return app.client.files_upload(file="darknet/predictions.jpg", channels=channel, title="Predictions", thread_ts=thread_ts)
 
 def get_file_from_url(url):
-    resp = requests.get(url, headers={'Authorization': 'Bearer %s' % slack_app_token})
+    resp = requests.get(url, headers={'Authorization': 'Bearer %s' % slack_bot_token})
     headers = resp.headers['content-disposition']
     fname = re.findall("filename=(.*?);", headers)[0].strip("'").strip('"')
     assert not os.path.exists(fname), print("File already exists. Please remove/rename and re-run")
@@ -78,12 +54,7 @@ def get_file_from_url(url):
     out_file = open(file_path, mode="wb+")
     out_file.write(resp.content)
     out_file.close()
-    return abspath(".")+"/" + file_path
-        
-    
-#web_client.chat_postMessage(channel="#pussy_testing", text=slack_print_channel(text))
+    return file_path
 
-# Startup
 if __name__ == "__main__":
-    web_client.chat_postMessage(channel="#pussy_testing", text=startup_message)
-    app.run(debug=True)
+    app.start(3000)

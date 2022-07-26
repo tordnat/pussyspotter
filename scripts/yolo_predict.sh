@@ -5,6 +5,7 @@ else
   echo 'Missing image' 
   exit
 fi
-source ./config/env.sh
+source .env
 cd $DARKNET_PATH
-$DARKNET_PATH/darknet detect $YOLO_CONFIG $YOLO_WEIGHTS $1
+rm log.txt
+$DARKNET_PATH/darknet detect $YOLO_CONFIG $YOLO_WEIGHTS $1 | tee -a log.txt
